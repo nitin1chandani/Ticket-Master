@@ -1,3 +1,6 @@
 tickets + bookings will come here
 
 booking will be - tickets -> event
+
+you create the event -> and there only you specify the no. of tickets need to be created 
+on the ticket you don't specify booking id and status will be available
