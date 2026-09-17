@@ -15,6 +15,10 @@ type Config struct {
 	RedisAddr     string
 	RedisPassword string
 	RedisDB       int
+
+	// JWT CONFIG
+	JWTSecret      string
+	JWTExpiryHours int
 }
 
 type Container struct {
