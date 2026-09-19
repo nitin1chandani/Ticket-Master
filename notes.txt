@@ -1,0 +1,14 @@
+core problems to solve
+
+-Prevent double booking under high concurrency
+-Temporary ticket reservation with expiration
+-Handle high traffic with caching + async processing
+
+1. Concurrent ticket booking
+   → PostgreSQL row locking / transactions
+
+2. Temporary ticket reservation
+   → Redis TTL + reservation expiry
+
+3. High traffic
+   → Redis caching + Kafka async processing
