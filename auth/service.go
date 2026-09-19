@@ -32,7 +32,7 @@ func (s *Service) Login(ctx context.Context, input LoginRequest) (*LoginResponse
 	}
 
 	if user == nil {
-		return nil, nil
+		return nil, ErrInvalidCredentials
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(input.Password)); err != nil {
@@ -60,7 +60,6 @@ func (s *Service) Login(ctx context.Context, input LoginRequest) (*LoginResponse
 		TokenType:   "Bearer",
 		ExpiresAt:   expiresAt.Unix(),
 	}, nil
-
 }
 
 func HashPassword(password string) (string, error) {

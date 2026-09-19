@@ -9,8 +9,8 @@ type UserAuth struct {
 }
 
 type LoginRequest struct {
-	EmailOrUsername string `json:"email_or_username"`
-	Password        string `json:"password"`
+	EmailOrUsername string `json:"email_or_username" validate:"required,min=8,max=200"`
+	Password        string `json:"password" validate:"required,min=8,max=80"`
 }
 
 type LoginResponse struct {
