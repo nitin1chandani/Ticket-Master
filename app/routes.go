@@ -14,6 +14,8 @@ func (c *Container) registerRoutes() {
 		})
 	})
 
+	// authMW := middleware.NewAuthMiddleware(c.Config.JWTSecret)
+
 	authRepo := auth.NewRepository(c.DB)
 	authService := auth.NewService(authRepo, c.Config.JWTSecret, time.Duration(c.Config.JWTExpiryHours)*time.Hour)
 	authHandler := auth.NewHandler(authService)
@@ -25,5 +27,7 @@ func (c *Container) registerRoutes() {
 	authV1 := v1.Group("/auth")
 	authV1.Post("/login", authHandler.Login)
 
-	//next
+	//protected
+	// protectedV1 := v1.Group("/", authMW.RequireJWT)
+
 }
