@@ -1,8 +1,11 @@
 package app
 
 import (
+	"errors"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/nitin1chandani/ticketmaster/internal/httpx"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -41,7 +44,34 @@ func NewContainer() (*Container, error) {
 		return nil, err
 	}
 
-	app := fiber.New()
+	app := fiber.New(fiber.Config{
+		ErrorHandler: func(c *fiber.Ctx, err error) error {
+			var appErr *httpx.AppError
+			if errors.As(err, &appErr) {
+				return c.Status(appErr.StatusCode).JSON(fiber.Map{
+					"success": false,
+					"code":    appErr.Code,
+					"message": appErr.Message,
+					"fields":  appErr.Fields,
+				})
+			}
+
+			var fiberErr *fiber.Error
+			if errors.As(err, &fiberErr) {
+				return c.Status(fiberErr.Code).JSON(fiber.Map{
+					"success": false,
+					"code":    "REQUEST_FAILED",
+					"message": fiberErr.Message,
+				})
+			}
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"success": false,
+				"code":    "INTERNAL_SERVER_ERROR",
+				"message": "Internal server error",
+			})
+		},
+	})
+
 	c := &Container{
 		Config: config,
 		DB:     db,
