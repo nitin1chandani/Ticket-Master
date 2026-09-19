@@ -7,7 +7,6 @@ type User struct {
 	Username     string `json:"username"`
 	RoleID       int    `json:"roleID"`
 	PasswordHash string `json:"-"`
-	CreatedBy    string `json:"created_by"`
 	CreatedAt    string `json:"created_at"`
 }
 
