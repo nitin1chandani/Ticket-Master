@@ -5,6 +5,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/nitin1chandani/ticketmaster/auth"
+	"github.com/nitin1chandani/ticketmaster/internal/middleware"
 )
 
 func (c *Container) registerRoutes() {
@@ -14,7 +15,7 @@ func (c *Container) registerRoutes() {
 		})
 	})
 
-	// authMW := middleware.NewAuthMiddleware(c.Config.JWTSecret)
+	authMW := middleware.NewAuthMiddleware(c.Config.JWTSecret)
 
 	authRepo := auth.NewRepository(c.DB)
 	authService := auth.NewService(authRepo, c.Config.JWTSecret, time.Duration(c.Config.JWTExpiryHours)*time.Hour)
@@ -28,6 +29,7 @@ func (c *Container) registerRoutes() {
 	authV1.Post("/login", authHandler.Login)
 
 	//protected
-	// protectedV1 := v1.Group("/", authMW.RequireJWT)
+	protectedV1 := v1.Group("/", authMW.RequireJWT)
+	protectedV1.Get("/me", authHandler.Me)
 
 }

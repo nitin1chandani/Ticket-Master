@@ -5,6 +5,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/nitin1chandani/ticketmaster/internal/httpx"
+	"github.com/nitin1chandani/ticketmaster/internal/middleware"
 )
 
 type Handler struct {
@@ -43,5 +44,28 @@ func (h *Handler) Login(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"success": true,
 		"data":    resp,
+	})
+}
+
+func (h *Handler) Me(c *fiber.Ctx) error {
+	userID, ok := middleware.UserIDFromContext(c)
+	if !ok {
+		return &httpx.AppError{
+			StatusCode: fiber.StatusUnauthorized,
+			Code:       "UNAUTHORIZED",
+			Message:    "Unauthorized access",
+		}
+	}
+
+	username, _ := middleware.UsernameFromContext(c)
+	roleID, _ := middleware.RoleIDFromContext(c)
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"success": true,
+		"data": fiber.Map{
+			"user_id":  userID,
+			"username": username,
+			"role_id":  roleID,
+		},
 	})
 }
