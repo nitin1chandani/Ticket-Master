@@ -1,6 +1,8 @@
 package user
 
 import (
+	"time"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/nitin1chandani/ticketmaster/internal/httpx"
 )
@@ -23,12 +25,12 @@ type RegisterRequest struct {
 }
 
 type RegisterResponse struct {
-	ID        int    `json:"id"`
-	Name      string `json:"name"`
-	Email     string `json:"email"`
-	Username  string `json:"username"`
-	RoleID    int    `json:"role_id"`
-	CreatedAt string `json:"created_at"`
+	ID        int       `json:"id"`
+	Name      string    `json:"name"`
+	Email     string    `json:"email"`
+	Username  string    `json:"username"`
+	RoleID    int       `json:"role_id"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 func (h *UserHandler) Register(c *fiber.Ctx) error {
