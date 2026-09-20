@@ -2,6 +2,7 @@ package event
 
 import (
 	"errors"
+	"strconv"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -50,7 +51,7 @@ func (h *EventHandler) CreateNewEvent(c *fiber.Ctx) error {
 	event, err := h.eventService.CreateEvent(c.Context(), &EventDetails{
 		Name:          req.Name,
 		Location:      req.Location,
-		PerformerName: req.Location,
+		PerformerName: req.PerformerName,
 		Description:   req.Description,
 		StartTime:     req.StartTime,
 		EndTime:       req.EndTime,
@@ -98,4 +99,38 @@ func (h *EventHandler) CreateNewEvent(c *fiber.Ctx) error {
 		"success": true,
 		"data":    resp,
 	})
+}
+
+func (h *EventHandler) GetEventDetailsWithAvailableTickets(c *fiber.Ctx) error {
+	eventID, err := strconv.Atoi(c.Params("event_id"))
+	if err != nil || eventID <= 0 {
+		return &httpx.AppError{
+			StatusCode: fiber.StatusBadRequest,
+			Code:       "INVALID_EVENT_ID",
+			Message:    "Invalid event_id",
+		}
+	}
+
+	eventDetails, err := h.eventService.GetAvailableTicketsWithEventDetails(c.Context(), int64(eventID))
+
+	if err != nil {
+		if errors.Is(err, ErrEventNotFound) {
+			return &httpx.AppError{
+				StatusCode: fiber.StatusNotFound,
+				Code:       "EVENT_DOES_NOT_EXIST",
+				Message:    "event does not exist",
+			}
+		}
+		return &httpx.AppError{
+			StatusCode: fiber.StatusInternalServerError,
+			Code:       "EVENT_DETAILS_FETCH_FAILED",
+			Message:    "failed to fetch event details",
+		}
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"success": true,
+		"data":    eventDetails,
+	})
+
 }

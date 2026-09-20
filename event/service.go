@@ -32,7 +32,7 @@ func (s *EventService) CreateEvent(ctx context.Context, input *EventDetails) (*E
 		return nil, ErrInvalidStartTime
 	}
 
-	if input.EndTime.IsZero() || !input.StartTime.After(input.StartTime) {
+	if input.EndTime.IsZero() || !input.EndTime.After(input.StartTime) {
 		return nil, ErrInvalidEndTime
 	}
 
@@ -41,4 +41,8 @@ func (s *EventService) CreateEvent(ctx context.Context, input *EventDetails) (*E
 	}
 
 	return s.EventRepo.CreateEvent(ctx, *input)
+}
+
+func (s *EventService) GetAvailableTicketsWithEventDetails(ctx context.Context, eventID int64) (*EventDetailsWithAvailableTickets, error) {
+	return s.EventRepo.GetEventDetailsWithTickets(ctx, eventID)
 }

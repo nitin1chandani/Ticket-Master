@@ -27,9 +27,21 @@ type EventDetails struct {
 	TicketStatus  string
 }
 
+type EventDetailsWithAvailableTickets struct {
+	Name             string
+	Location         string
+	PerformerName    string
+	Description      string
+	StartTime        time.Time
+	EndTime          time.Time
+	TicketPrice      float64
+	AvailableTickets []int64
+}
+
 type EventRepository interface {
 	CreateEvent(ctx context.Context, input EventDetails) (*Event, error)
 	GetByID(ctx context.Context, id int64) (*Event, error)
+	GetEventDetailsWithTickets(ctx context.Context, id int64) (*EventDetailsWithAvailableTickets, error)
 }
 
 type EventRepo struct {
@@ -125,7 +137,7 @@ func (r *EventRepo) CreateEvent(ctx context.Context, input EventDetails) (*Event
 func (r *EventRepo) GetByID(ctx context.Context, id int64) (*Event, error) {
 	const query = `
 		SELECT 
-		id, name, location, performer_name, desciption, start_time, end_time, created_at
+		id, name, location, performer_name, description, start_time, end_time, created_at
 		FROM
 		events
 		WHERE id = $1
@@ -152,4 +164,57 @@ func (r *EventRepo) GetByID(ctx context.Context, id int64) (*Event, error) {
 	}
 
 	return &event, nil
+}
+
+func (r *EventRepo) GetEventDetailsWithTickets(ctx context.Context, eventID int64) (*EventDetailsWithAvailableTickets, error) {
+	const eventQuery = `
+		SELECT 
+		name, location, performer_name, description, start_time, end_time
+		FROM 
+		events
+		WHERE id = $1
+	`
+
+	var eda EventDetailsWithAvailableTickets
+	err := r.db.QueryRow(ctx, eventQuery, eventID).Scan(
+		&eda.Name,
+		&eda.Location,
+		&eda.PerformerName,
+		&eda.Description,
+		&eda.StartTime,
+		&eda.EndTime,
+	)
+
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrEventNotFound
+		}
+		return nil, err
+	}
+
+	const ticketQuery = `
+		SELECT 
+			id
+		FROM  tickets
+		WHERE event_id = $1
+		AND
+		status = 'available'
+	`
+	rows, err := r.db.Query(ctx, ticketQuery, eventID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var ticketID int64
+
+		if err := rows.Scan(&ticketID); err != nil {
+			return nil, err
+		}
+
+		eda.AvailableTickets = append(eda.AvailableTickets, ticketID)
+	}
+
+	return &eda, nil
 }
