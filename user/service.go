@@ -12,7 +12,7 @@ import (
 )
 
 type UserService struct {
-	repo *Repository
+	repo UserRepository
 }
 
 func NewService(repo *Repository) *UserService {

@@ -13,10 +13,10 @@ var (
 )
 
 type EventService struct {
-	EventRepo *EventRepo
+	EventRepo EventRepository
 }
 
-func NewEventService(eventRepo *EventRepo) (e *EventService) {
+func NewEventService(eventRepo EventRepository) (e *EventService) {
 	return &EventService{
 		EventRepo: eventRepo,
 	}
