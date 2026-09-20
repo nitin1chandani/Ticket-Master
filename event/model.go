@@ -15,9 +15,11 @@ type Event struct {
 }
 
 type Ticket struct {
-	ID        int `json:"id"`
-	EventID   int `json:"event_id"`
-	BookingID int `json:"booking_id"`
+	ID            int        `json:"id"`
+	EventID       int        `json:"event_id"`
+	BookingID     int        `json:"booking_id"`
+	ReservedUntil *time.Time `json:"reserved_until"`
+
 	// Status can be "available", "reserved", or "sold"
 	Status string  `json:"status"`
 	Price  float64 `json:"price"`

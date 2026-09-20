@@ -56,7 +56,8 @@ func (c *Container) registerRoutes() {
 	protectedV1.Get("/me", authHandler.Me)
 
 	bookingV1 := protectedV1.Group("/booking")
-	bookingV1.Post("/:event_id", bookingHandler.BookTickets)
+	bookingV1.Post("/:event_id/reserve", bookingHandler.ReserveTickets)
+	bookingV1.Post("/:event_id/confirm", bookingHandler.ConfirmBooking)
 
 	eventV1 := protectedV1.Group("/event")
 	eventV1.Post("/", eventHandler.CreateNewEvent) // only admin can create we need a middleware

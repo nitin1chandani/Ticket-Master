@@ -12,3 +12,111 @@ core problems to solve
 
 3. High traffic
    → Redis caching + Kafka async processing
+
+
+
+
+  → reserve tickets in DB
+  → mark tickets sold
+  → release expired tickets
+
+BookingRepo
+  → create pending booking
+  → confirm booking
+  → expire booking
+
+3. Redis layer
+
+Create something like:
+
+internal/redis/
+    client.go
+    reservation.go
+
+Responsibilities:
+
+Reserve(ticketID, bookingID, TTL)
+Release(ticketID, bookingID)
+IsReserved(ticketID, bookingID)
+
+Keep Redis implementation out of your handlers.
+
+4. Booking service
+
+This is where the actual flow lives:
+
+ReserveTickets()
+    ↓
+Create pending booking
+    ↓
+Acquire Redis locks
+    ↓
+Mark tickets reserved in DB
+    ↓
+Return booking + expiry
+
+Then:
+
+ConfirmBooking()
+    ↓
+Check Redis reservation
+    ↓
+DB transaction
+    ↓
+tickets → sold
+booking → confirmed
+    ↓
+delete Redis locks
+
+5. Background worker
+
+Create:
+
+internal/worker/
+    reservation_expiry.go
+
+Every few seconds/minutes:
+
+Find expired reservations
+        ↓
+tickets → available
+booking → expired
+
+This is cleanup, not the primary reservation mechanism.
+
+6. HTTP layer
+
+Endpoints:
+
+POST /events
+GET  /events/:id
+
+POST /events/:id/reserve
+POST /bookings/:id/confirm
+
+Handlers should be thin:
+
+HTTP Handler
+    ↓
+Booking Service
+    ↓
+Repositories + Redis
+Final architecture
+              HTTP
+               │
+          ┌────▼─────┐
+          │ Handlers │
+          └────┬─────┘
+               │
+          ┌────▼─────┐
+          │ Services │
+          └──┬────┬──┘
+             │    │
+       ┌─────▼┐  ┌▼──────┐
+       │ Redis│  │  DB   │
+       └──────┘  └───────┘
+                    ▲
+                    │
+               Expiry Worker
+
+Build order: DB → repositories → Redis reservation → booking service → APIs → expiry worker → tests.
