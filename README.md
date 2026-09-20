@@ -46,4 +46,11 @@ Code layout is simple on purpose:
 - services carry the business flow
 - repositories handle DB operations
 
+## Load test summary (brief)
+
+- Ran 6000 real HTTP booking requests across multiple high-contention scenarios.
+- Result: zero double-bookings, zero 5xx, and sold inventory always matched available inventory.
+- After adding ticket indexes, hot-path latency improved significantly (example: reserve p95 448ms -> 206ms, confirm p95 368ms -> 174ms in the 1000-user test).
+
+
 
