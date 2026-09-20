@@ -26,7 +26,7 @@ type BookEventRequest struct {
 func (h *BookingHandler) BookTickets(c *fiber.Ctx) error {
 	stringEventID := c.Params("event_id")
 	eventID, err := strconv.Atoi(stringEventID)
-	if err != nil || eventID == 0 {
+	if err != nil || eventID <= 0 {
 		return &httpx.AppError{
 			StatusCode: fiber.StatusBadRequest,
 			Code:       "INVALID_EVENT_ID",
@@ -64,7 +64,7 @@ func (h *BookingHandler) BookTickets(c *fiber.Ctx) error {
 				Code:       "EVENT_NOT_FOUND",
 				Message:    "event not found",
 			}
-		case errors.Is(err, ErrInvalidTicketCount), errors.Is(err, ErrInvalidTickets):
+		case errors.Is(err, ErrInvalidTicketCount), errors.Is(err, ErrInvalidTickets), errors.Is(err, ErrDuplicateTickets):
 			return &httpx.AppError{
 				StatusCode: fiber.StatusBadRequest,
 				Code:       "INVALID_TICKETS",

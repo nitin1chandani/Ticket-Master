@@ -6,6 +6,7 @@ import (
 )
 
 var ErrInvalidTicketCount = errors.New("you should have atleast one ticket")
+var ErrDuplicateTickets = errors.New("duplicate ticket ids in request")
 var ErrInvalidTickets = errors.New("tickets do not belong to event")
 var ErrEventNotFound = errors.New("event not found")
 
@@ -34,6 +35,14 @@ func (s *BookingService) BookTickets(ctx context.Context, input *BookTicketInput
 		return nil, ErrInvalidTicketCount
 	}
 
+	seen := make(map[int64]struct{}, len(input.Tickets))
+	for _, ticketID := range input.Tickets {
+		if _, ok := seen[ticketID]; ok {
+			return nil, ErrDuplicateTickets
+		}
+		seen[ticketID] = struct{}{}
+	}
+
 	eventExists, err := s.bookingRepo.EventExists(ctx, input.EventID)
 	if err != nil {
 		return nil, err
@@ -48,14 +57,6 @@ func (s *BookingService) BookTickets(ctx context.Context, input *BookTicketInput
 	}
 	if !validTickets {
 		return nil, ErrInvalidTickets
-	}
-
-	availableTickets, err := s.bookingRepo.ValidateTicketsAvailable(ctx, input.EventID, input.Tickets)
-	if err != nil {
-		return nil, err
-	}
-	if !availableTickets {
-		return nil, ErrTicketConflict
 	}
 
 	return s.bookingRepo.BookTickets(ctx, BookTicketDetails{
