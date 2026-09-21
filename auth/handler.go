@@ -6,14 +6,17 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/nitin1chandani/ticketmaster/internal/httpx"
 	"github.com/nitin1chandani/ticketmaster/internal/middleware"
+	"go.uber.org/zap"
 )
 
 type Handler struct {
+	logger  *zap.Logger
 	service *Service
 }
 
-func NewHandler(service *Service) *Handler {
+func NewHandler(service *Service, logger *zap.Logger) *Handler {
 	return &Handler{
+		logger:  logger,
 		service: service,
 	}
 }
@@ -28,12 +31,21 @@ func (h *Handler) Login(c *fiber.Ctx) error {
 
 	if err != nil {
 		if errors.Is(err, ErrInvalidCredentials) {
+			h.logger.Warn("login failed: invalid credentials",
+				zap.String("email_or_username", req.EmailOrUsername),
+				zap.String("path", c.Path()),
+			)
 			return &httpx.AppError{
 				StatusCode: fiber.StatusUnauthorized,
 				Code:       "INVALID_CREDENTIALS",
 				Message:    "Invalid credentials",
 			}
 		}
+		h.logger.Error("login failed",
+			zap.String("email_or_username", req.EmailOrUsername),
+			zap.String("path", c.Path()),
+			zap.Error(err),
+		)
 		return &httpx.AppError{
 			StatusCode: fiber.StatusInternalServerError,
 			Code:       "LOGIN_FAILED",

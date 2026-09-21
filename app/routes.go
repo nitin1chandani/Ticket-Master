@@ -9,9 +9,10 @@ import (
 	"github.com/nitin1chandani/ticketmaster/event"
 	"github.com/nitin1chandani/ticketmaster/internal/middleware"
 	"github.com/nitin1chandani/ticketmaster/user"
+	"go.uber.org/zap"
 )
 
-func (c *Container) registerRoutes() {
+func (c *Container) registerRoutes(logger *zap.Logger) {
 	c.App.Get("/health", func(ctx *fiber.Ctx) error {
 		return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
 			"status": "ok",
@@ -23,7 +24,7 @@ func (c *Container) registerRoutes() {
 	//auth
 	authRepo := auth.NewRepository(c.DB)
 	authService := auth.NewService(authRepo, c.Config.JWTSecret, time.Duration(c.Config.JWTExpiryHours)*time.Hour)
-	authHandler := auth.NewHandler(authService)
+	authHandler := auth.NewHandler(authService, logger)
 
 	//user
 	userRepo := user.NewRepository(c.DB)

@@ -109,7 +109,7 @@ func NewContainer() (*Container, error) {
 		App:    app,
 		Logger: logger,
 	}
-	c.registerRoutes()
+	c.registerRoutes(logger)
 	return c, nil
 }
 
